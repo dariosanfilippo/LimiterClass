@@ -77,9 +77,7 @@ void DelaySmooth<head, real>::Process(real** xVec, real** yVec, size_t vecLen) {
         real* yLeft = yVec[0];
         real* yRight = yVec[1];
 
-        /* Fill the delay buffers with the input signal;
-         * the buffer will be shared by the two delay lines to reduce 
-         * memory costs. */
+        /* Fill the delay buffers with the input signals. */
         bufferLeft[writePtr] = xLeft[n];
         bufferRight[writePtr] = xRight[n];
 

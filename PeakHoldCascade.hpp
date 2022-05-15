@@ -81,7 +81,7 @@ void PeakHoldCascade<stages, real>::Process(real* xVec, real* yVec, size_t vecLe
              * will hold the out value until a release phase occurs. */
             bool isNewPeak = input >= output[stage];
             bool isTimeOut = timer[stage] >= holdTimeSamples;
-            bool release = isNewPeak | isTimeOut;
+            bool release = isNewPeak || isTimeOut;
 
             /* Following a branchless programming paradigm, we compute the paths 
              * for the variables with bifurcation and assign the results using
