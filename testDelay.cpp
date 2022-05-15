@@ -20,7 +20,7 @@ int main() {
 
     const int vecLen = 4096;
     real inVec[vecLen] = { 0 };
-    real outVec[vecLen];
+    real outVec[vecLen] = { 0 };
 
     real SR = 48000.0;
     size_t delay = 1000;
@@ -46,7 +46,7 @@ int main() {
     double times[iterations];
 
     for (size_t i = 0; i < iterations; i++) {
-
+        
         /* We run the delay line process function "iterations" times
          * measuring the execution time at each run. We then accumulate
          * the results and store the single times in an array for later 
@@ -57,6 +57,9 @@ int main() {
         duration<double, std::micro> timeDuration = t1 - t0;
         times[i] = timeDuration.count();
         averageTime += timeDuration.count();
+
+        /* Regenerate the input vector at each run. */
+        generators.ProcessNoise(inVec, vecLen);
     }
     
     /* Compute the execution time average. */
