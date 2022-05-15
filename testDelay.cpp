@@ -19,8 +19,12 @@ int main() {
     std::cout << std::fixed << std::setprecision(17);
 
     const int vecLen = 4096;
-    real inVec[vecLen] = { 0 };
-    real outVec[vecLen] = { 0 };
+    real** inVec = new real*[2];
+    real** outVec = new real*[2];
+    for (size_t i = 0; i < 2; i++) {
+        inVec[i] = new real[vecLen];
+        outVec[i] = new real[vecLen];
+    }
 
     real SR = 48000.0;
     size_t delay = 1000;
@@ -33,11 +37,12 @@ int main() {
     delayline.SetInterpolationTime(delay);
 
     /* Fill input and output vectors to generate a CSV file. */
-    generators.ProcessNoise(inVec, vecLen);
+    generators.ProcessNoise(inVec[0], vecLen);
+    generators.ProcessNoise(inVec[1], vecLen);
     delayline.Process(inVec, outVec, vecLen);
     for (size_t i = 0; i < vecLen; i++) {
-		csvFile << i << "," << inVec[i] << "," << outVec[i] << "\n";
-	}
+	    csvFile << i << "," << inVec[0][i] << "," << inVec[1][i] << "," << outVec[0][i] << "," << outVec[1][i] << "\n";
+    }
 
     /* Execution time measurement variables. */
     double averageTime = 0;
@@ -59,7 +64,8 @@ int main() {
         averageTime += timeDuration.count();
 
         /* Regenerate the input vector at each run. */
-        generators.ProcessNoise(inVec, vecLen);
+        generators.ProcessNoise(inVec[0], vecLen);
+        generators.ProcessNoise(inVec[1], vecLen);
     }
     
     /* Compute the execution time average. */

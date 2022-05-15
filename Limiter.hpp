@@ -44,8 +44,7 @@ class Limiter {
         real smoothParamCoeff = std::exp(-twoPi * 20.0 * T);
     
         size_t lookaheadDelay = 0;
-        DelaySmooth<uint16_t, real> delayLeft;
-        DelaySmooth<uint16_t, real> delayRight;
+        DelaySmooth<uint16_t, real> delay;
         const static size_t numberOfPeakHoldSections = 8;
         const static size_t numberOfSmoothSections = 4;
         const real oneOverPeakSections = 1.0 / real(numberOfPeakHoldSections);
@@ -86,10 +85,8 @@ void Limiter<real>::SetAttTime(real _attack) {
     
     /* We set the interpolation time equal to the delay for minimum
      * overshooting during attack variations. */
-    delayLeft.SetDelay(lookaheadDelay);
-    delayLeft.SetInterpolationTime(lookaheadDelay);
-    delayRight.SetDelay(lookaheadDelay);
-    delayRight.SetInterpolationTime(lookaheadDelay);
+    delay.SetDelay(lookaheadDelay);
+    delay.SetInterpolationTime(lookaheadDelay);
     
     expSmoother.SetAttTime(attack);
     peakHolder.SetHoldTime(attack + hold);
@@ -125,8 +122,7 @@ void Limiter<real>::SetPreGain(real _preGain) {
 
 template<typename real>
 void Limiter<real>::Reset() {
-    delayLeft.Reset();
-    delayRight.Reset();
+    delay.Reset();
     peakHolder.Reset();
     expSmoother.Reset();
 }
@@ -191,8 +187,7 @@ void Limiter<real>::Process(real** xVec, real** yVec, size_t vecLen) {
 
     /* We apply the look-ahead delay to synchronise the input signals and the
      * attenuation gain. */
-    delayLeft.Process(xLeft, xLeft, vecLen);
-    delayRight.Process(xRight, xRight, vecLen);
+    delay.Process(xVec, xVec, vecLen);
 
     /* Lastly, we apply the attenuation gain to the delayed inputs and store
      * the result in the output vectors. */

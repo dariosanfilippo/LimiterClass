@@ -43,7 +43,8 @@ class DelaySmooth {
         head upperReadPtr = 0;
         head writePtr = 0;
     
-        std::vector<real> buffer;
+        std::vector<real> bufferLeft;
+        std::vector<real> bufferRight;
 
     public:
         void SetDelay(size_t _delay) { delay = _delay; };
@@ -51,9 +52,15 @@ class DelaySmooth {
             interpolationTime = _interpolationTime;
             interpolationStep = 1.0 / real(interpolationTime);
         };
-        void Reset() { memset(buffer, 0, bufferLen); };
-        void Process(real* xVec, real* yVec, size_t vecLen);
-        DelaySmooth() { buffer.resize(bufferLen); };
+        void Reset() {
+            memset(bufferLeft, 0, bufferLen);
+            memset(bufferRight, 0, bufferLen);
+        };
+        void Process(real** xVec, real** yVec, size_t vecLen);
+        DelaySmooth() {
+            bufferLeft.resize(bufferLen);
+            bufferRight.resize(bufferLen);
+        };
         DelaySmooth(size_t _delay, size_t _interpolationTime);
 };
 
@@ -63,13 +70,18 @@ class DelaySmooth {
  * set with a new delay and a new crossafed can start. During the crossfade,
  * neither the delay or interpolation time can be changed. */
 template<typename head, typename real>
-void DelaySmooth<head, real>::Process(real* xVec, real* yVec, size_t vecLen) {
+void DelaySmooth<head, real>::Process(real** xVec, real** yVec, size_t vecLen) {
     for (size_t n = 0; n < vecLen; n++) { // level-0 for-loop
+        real* xLeft = xVec[0];
+        real* xRight = xVec[1];
+        real* yLeft = yVec[0];
+        real* yRight = yVec[1];
 
-        /* Fill the delay buffer with the input signal;
+        /* Fill the delay buffers with the input signal;
          * the buffer will be shared by the two delay lines to reduce 
          * memory costs. */
-        buffer[writePtr] = xVec[n];
+        bufferLeft[writePtr] = xLeft[n];
+        bufferRight[writePtr] = xRight[n];
 
         /* Compute the necessary Boolean conditions to trigger a new
          * interpolation and set a new delay or interpolation time. 
@@ -127,16 +139,20 @@ void DelaySmooth<head, real>::Process(real* xVec, real* yVec, size_t vecLen) {
         /* Compute the interpolation and assign the result to the output. */
         interpolation = 
             std::max<real>(0.0, std::min<real>(1.0, interpolation + increment));
-        yVec[n] =
-            interpolation * (buffer[upperReadPtr] - buffer[lowerReadPtr]) +
-                buffer[lowerReadPtr];
+        yLeft[n] = interpolation * 
+            (bufferLeft[upperReadPtr] - bufferLeft[lowerReadPtr]) +
+                bufferLeft[lowerReadPtr];
+        yRight[n] = interpolation * 
+            (bufferRight[upperReadPtr] - bufferRight[lowerReadPtr]) +
+                bufferRight[lowerReadPtr];
 
     } // end of level-0 for-loop
 }
 
 template<typename head, typename real>
 DelaySmooth<head, real>::DelaySmooth(size_t _delay, size_t _interpolationTime) {
-    buffer.resize(bufferLen);
+    bufferLeft.resize(bufferLen);
+    bufferRight.resize(bufferLen);
     delay = _delay;
     interpolationTime = _interpolationTime;
     interpolationStep = 1.0 / real(interpolationTime);

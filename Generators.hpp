@@ -15,6 +15,10 @@ class Generators {
         real phasor = .0;
         real incr = freq / SR;
         real twoPi = 2.0 * M_PI;
+        int32_t state = 0;
+        int32_t seed = 12345;
+        const int32_t MAX = 2147483648 - 1;
+
     public:
         void SetSR(real _SR);
         void SetFreq(real _freq);
@@ -46,9 +50,6 @@ void Generators<real>::ProcessSine(real* vec, int vecLen) {
 
 template<typename real>
 void Generators<real>::ProcessNoise(real* vec, int vecLen) {
-    int32_t state = 0;
-    int32_t seed = 12345;
-    const int32_t MAX = 2147483648 - 1;
     for (int i = 0; i < vecLen; i++) {
         state = state * 1103515245 + seed;
         vec[i] = state / real(MAX);
