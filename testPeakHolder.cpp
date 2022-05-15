@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <chrono>
 #include "Generators.hpp"
-#include "DelaySmooth.hpp"
+#include "PeakHoldCascade.hpp"
 
 int main() {
     typedef double real;
@@ -14,7 +14,7 @@ int main() {
     using std::chrono::duration;
     using std::chrono::microseconds;
 
-    std::ofstream csvFile("DelaySmooth.csv", std::ofstream::trunc);
+    std::ofstream csvFile("PeakHoldCascade.csv", std::ofstream::trunc);
     csvFile << std::fixed << std::setprecision(17);
     std::cout << std::fixed << std::setprecision(17);
 
@@ -23,18 +23,18 @@ int main() {
     real outVec[vecLen] = { 0 };
 
     real SR = 48000.0;
-    size_t delay = 1000;
+    real holdTime = .01;
 
     Generators<real> generators;
-    DelaySmooth<uint16_t, real> delayline;
+    PeakHoldCascade<8, real> peakHolder;
    
-    /* Setup delay line. */
-    delayline.SetDelay(delay);
-    delayline.SetInterpolationTime(delay);
+    /* Setup peak holder. */
+    peakHolder.SetSR(SR);
+    peakHolder.SetHoldTime(holdTime);
 
     /* Fill input and output vectors to generate a CSV file. */
     generators.ProcessNoise(inVec, vecLen);
-    delayline.Process(inVec, outVec, vecLen);
+    peakHolder.Process(inVec, outVec, vecLen);
     for (size_t i = 0; i < vecLen; i++) {
 		csvFile << i << "," << inVec[i] << "," << outVec[i] << "\n";
 	}
@@ -47,12 +47,12 @@ int main() {
 
     for (size_t i = 0; i < iterations; i++) {
         
-        /* We run the delay line process function "iterations" times
+        /* We run the process function "iterations" times
          * measuring the execution time at each run. We then accumulate
          * the results and store the single times in an array for later 
          * use. */
         auto t0 = high_resolution_clock::now();
-        delayline.Process(inVec, outVec, vecLen);
+        peakHolder.Process(inVec, outVec, vecLen);
         auto t1 = high_resolution_clock::now();
         duration<double, std::micro> timeDuration = t1 - t0;
         times[i] = timeDuration.count();
@@ -79,7 +79,7 @@ int main() {
     std::cout << "Iterations: " << iterations << std::endl;
     std::cout << "Average execution time (microsecond): " << averageTime << std::endl;
     std::cout << "Relative standard deviation (%): " << (standardDeviation * 100.0) << std::endl;
-    std::cout << "The program has generated the file DelaySmooth.csv containing one vector of input and output samples." << std::endl;
+    std::cout << "The program has generated the file PeakHoldCascade.csv containing one vector of input and output samples." << std::endl;
 
     csvFile.close();
     return 0;
