@@ -127,8 +127,9 @@ void DelaySmooth<head, real>::Process(real* xVec, real* yVec, size_t vecLen) {
         /* Compute the interpolation and assign the result to the output. */
         interpolation = 
             std::max<real>(0.0, std::min<real>(1.0, interpolation + increment));
-        yVec[n] = (1.0 - interpolation) * buffer[lowerReadPtr] + 
-            interpolation * buffer[upperReadPtr];
+        yVec[n] =
+            interpolation * (buffer[upperReadPtr] - buffer[lowerReadPtr]) +
+                buffer[lowerReadPtr];
 
     } // end of level-0 for-loop
 }

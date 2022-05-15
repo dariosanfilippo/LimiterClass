@@ -20,16 +20,14 @@ class ExpSmootherCascade {
         real twoPiT = twoPi * T;
         real attTime = .001; // Attack time in seconds.
         real relTime = .01; // Release time in seconds.
-        real attRate = 1.0 / attTime;
-        real relRate = 1.0 / relTime;
     
         /* Coefficient correction factor to maintain consistent attack and
          * decay rates when cascading multiple one-pole sections. */
-        const real rateCorrection =
+        const real coeffCorrection =
             1.0 / std::sqrt(std::pow(2.0, 1.0 / real(stages)) - 1.0);
     
-        real attCoeff = std::exp(-twoPiT * attRate * rateCorrection);
-        real relCoeff = std::exp(-twoPiT * relRate * rateCorrection);
+        real attCoeff = std::exp((-twoPiT * coeffCorrection) / attTime);
+        real relCoeff = std::exp((-twoPiT * coeffCorrection) / relTime);
     
         /* We store the coefficients in an array for efficient Boolean
          * fetching without branching. */
@@ -62,16 +60,14 @@ void ExpSmootherCascade<stages, real>::SetSR(real _SR) {
 template<size_t stages, typename real>
 void ExpSmootherCascade<stages, real>::SetAttTime(real _attTime) {
     attTime = _attTime;
-    attRate = 1.0 / attTime;
-    attCoeff = std::exp(-twoPiT * attRate * rateCorrection);
+    attCoeff = std::exp((-twoPiT * coeffCorrection) / attTime);
     coeff[1] = attCoeff;
 }
 
 template<size_t stages, typename real>
 void ExpSmootherCascade<stages, real>::SetRelTime(real _relTime) {
     relTime = _relTime;
-    relRate = 1.0 / relTime;
-    relCoeff = std::exp(-twoPiT * relRate * rateCorrection);
+    relCoeff = std::exp((-twoPiT * coeffCorrection) / relTime);
     coeff[0] = relCoeff;
 }
 
@@ -121,11 +117,9 @@ ExpSmootherCascade<stages, real>::ExpSmootherCascade(real _SR, real _attTime, re
     T = 1.0 / SR;
     twoPiT = twoPi * T;
     attTime = _attTime;
-    attRate = 1.0 / attTime;
-    attCoeff = std::exp(-twoPiT * attRate * rateCorrection);
+    attCoeff = std::exp((-twoPiT * coeffCorrection) / attTime);
     relTime = _relTime;
-    relRate = 1.0 / relTime;
-    relCoeff = std::exp(-twoPiT * relRate * rateCorrection);
+    relCoeff = std::exp((-twoPiT * coeffCorrection) / relTime);
     coeff[0] = relCoeff;
     coeff[1] = attCoeff;
 }
