@@ -18,6 +18,7 @@
 #pragma once
 
 #include <cmath>
+#include <limits>
 #include <cstdint>
 #include "DelaySmooth.hpp"
 #include "PeakHoldCascade.hpp"
@@ -29,19 +30,20 @@ class Limiter {
         real SR = 48000.0; // Samplerate as a float variable for later calculations.
         real T = 1.0 / SR; // Sampling period.
         const real twoPi = 2.0 * M_PI;
+        const real epsilon = std::numeric_limits<real>::epsilon();
+        const real smoothParamCutoff = 20.0; // Hz.
         real attack = .01; // Attack time in seconds.
         real hold = .0; // Hold time in seconds, useful to improve THD at lower frequencies.
         real release = .05; // Release time in seconds.
         real dBThreshold = -.3; // Threshold in dB.
         real linThreshold = std::pow(10.0, dBThreshold * .05); // Linear threshold value.
-
         real dBPreGain = .0; // Input gain before processing in dB.
         real linPreGain = 1.0; // Linear gain.
         real smoothPreGain = .0; // Smoothed out linear gain for click-free variations.
         real smoothThreshold = .0; // Smoothed out limiting threshold for click-free variations.
     
-        /* Coefficient for a 20 Hz one-pole low-pass filter. */
-        real smoothParamCoeff = std::exp(-twoPi * 20.0 * T);
+        /* Coefficient for a one-pole low-pass filter. */
+        real smoothParamCoeff = std::exp(-twoPi * smoothParamCutoff * T);
     
         size_t lookaheadDelay = 0;
         DelaySmooth<uint16_t, real> delay;
@@ -66,16 +68,16 @@ class Limiter {
 
 template<typename real>
 void Limiter<real>::SetSR(real _SR) {
-    SR = _SR;
+    SR = std::max<real>(1.0, _SR);
     T = 1.0 / SR;
-    smoothParamCoeff = std::exp(-twoPi * 20.0 * T);
+    smoothParamCoeff = std::exp(-twoPi * smoothParamCutoff * T);
     peakHolder.SetSR(SR);
     expSmoother.SetSR(SR);
 }
 
 template<typename real>
 void Limiter<real>::SetAttTime(real _attack) {
-    attack = _attack;
+    attack = std::max<real>(epsilon, _attack);
     
     /* We compute the delay so that it matches the hold time of the
      * peak-holder section for correct input-attenuation synchronisation.
@@ -94,7 +96,7 @@ void Limiter<real>::SetAttTime(real _attack) {
 
 template<typename real>
 void Limiter<real>::SetHoldTime(real _hold) {
-    hold = _hold;
+    hold = std::max<real>(.0, _hold);
     
     /* The hold time is simply an extension of the peak-holder period
      * that allows for better convergence to the target amplitude. The
@@ -104,13 +106,13 @@ void Limiter<real>::SetHoldTime(real _hold) {
 
 template<typename real>
 void Limiter<real>::SetRelTime(real _release) {
-    release = _release;
+    release = std::max<real>(epsilon, _release);
     expSmoother.SetRelTime(release);
 }
 
 template<typename real>
 void Limiter<real>::SetThreshold(real _threshold) {
-    dBThreshold = _threshold;
+    dBThreshold = std::max<real>(-120.0, _threshold);
     linThreshold = std::pow(10.0, dBThreshold * .05);
 }
 
@@ -199,10 +201,10 @@ void Limiter<real>::Process(real** xVec, real** yVec, size_t vecLen) {
 
 template<typename real>
 Limiter<real>::Limiter(real _SR, real _dBPreGain, real _attack, real _hold, real _release, real _dBThreshold) {
-    SR = _SR;
+    SR = std::max<real>(1.0, _SR);
     dBPreGain = _dBPreGain;
-    attack = _attack;
-    hold = _hold;
-    release = _release;
-    dBThreshold = _dBThreshold;
+    attack = std::max<real>(epsilon, _attack);
+    hold = std::max<real>(.0, _hold);
+    release = std::max<real>(epsilon, _release);
+    dBThreshold = std::max<real>(-120.0, _dBThreshold);
 }
