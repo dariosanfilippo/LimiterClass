@@ -35,7 +35,7 @@ int main() {
     real threshold = -.3;
 
     Generators<real> generators;
-    Limiter<real> limiter;
+    Limiter<real> limiter(SR, preGain, attTime, holdTime, relTime, threshold);
    
     /* Setup limiter. */
     limiter.SetSR(SR);
@@ -44,6 +44,7 @@ int main() {
     limiter.SetRelTime(relTime);
     limiter.SetPreGain(preGain);
     limiter.SetThreshold(threshold);
+    limiter.Reset();
 
     /* Fill input and output vectors to generate a CSV file. */
     generators.ProcessNoise(inVec[0], vecLen);

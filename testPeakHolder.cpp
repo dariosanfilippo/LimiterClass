@@ -26,11 +26,12 @@ int main() {
     real holdTime = .01;
 
     Generators<real> generators;
-    PeakHoldCascade<8, real> peakHolder;
+    PeakHoldCascade<8, real> peakHolder(SR, holdTime);
    
     /* Setup peak holder. */
     peakHolder.SetSR(SR);
     peakHolder.SetHoldTime(holdTime);
+    peakHolder.Reset();
 
     /* Fill input and output vectors to generate a CSV file. */
     generators.ProcessNoise(inVec, vecLen);

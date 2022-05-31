@@ -33,6 +33,7 @@ int main() {
     expSmoother.SetSR(SR);
     expSmoother.SetAttTime(attTime);
     expSmoother.SetRelTime(relTime);
+    expSmoother.Reset();
 
     /* Fill input and output vectors to generate a CSV file. */
     generators.ProcessNoise(inVec, vecLen);

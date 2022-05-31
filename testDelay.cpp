@@ -30,11 +30,12 @@ int main() {
     size_t delay = 1000;
 
     Generators<real> generators;
-    DelaySmooth<uint16_t, real> delayline;
+    DelaySmooth<uint16_t, real> delayline(delay, delay);
    
     /* Setup delay line. */
     delayline.SetDelay(delay);
     delayline.SetInterpolationTime(delay);
+    delayline.Reset();
 
     /* Fill input and output vectors to generate a CSV file. */
     generators.ProcessNoise(inVec[0], vecLen);
