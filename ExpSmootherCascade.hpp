@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 #include <limits>
 
 template<size_t stages, typename real>

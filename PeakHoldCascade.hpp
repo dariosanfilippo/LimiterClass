@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
 template<size_t stages, typename real>
 class PeakHoldCascade {

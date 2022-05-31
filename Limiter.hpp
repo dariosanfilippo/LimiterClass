@@ -18,6 +18,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 #include <limits>
 #include <cstdint>
 #include "DelaySmooth.hpp"
