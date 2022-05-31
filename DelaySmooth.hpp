@@ -19,22 +19,23 @@
 #include <cstdint>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
 template<typename head, typename real>
 class DelaySmooth {
+    
     private:
-
         /* Compute the buffer size as the largest representable 
          * int with a head-type variable. */
         const size_t bufferLen = 2l << (8 * sizeof(head) - 1);
 
-        size_t delay = 0; // system output delay in samples
-        size_t interpolationTime = 1024; // interpolation time in samples
-        size_t lowerDelay = 0; // lower head delay
-        size_t upperDelay = 0; // upper head delay
-        real interpolation = 0.0; // interpolation coefficient in the range [0; 1]
-        real interpolationStep = 1.0 / real(interpolationTime); // interpolation segment slope
-        real increment = interpolationStep; // helper var for interpolation coefficient calculation
+        size_t delay = 0; // System output delay in samples.
+        size_t interpolationTime = 1024; // Interpolation time in samples.
+        size_t lowerDelay = 0; // Lower head delay.
+        size_t upperDelay = 0; // Upper head delay.
+        real interpolation = 0.0; // Interpolation coefficient in the range [0; 1].
+        real interpolationStep = 1.0 / real(interpolationTime); // Interpolation segment slope.
+        real increment = interpolationStep; // Helper var for interpolation coefficient calculation.
         
         /* Reading and writing heads. These will cycle continuously from 0
          * to bufferLen - 1. The reading heads will be offset appropriately
@@ -49,12 +50,12 @@ class DelaySmooth {
     public:
         void SetDelay(size_t _delay) { delay = _delay; };
         void SetInterpolationTime(size_t _interpolationTime) {
-            interpolationTime = _interpolationTime;
+            interpolationTime = std::max<size_t>(1, _interpolationTime);
             interpolationStep = 1.0 / real(interpolationTime);
         };
         void Reset() {
-            memset(bufferLeft, 0, bufferLen);
-            memset(bufferRight, 0, bufferLen);
+            std::fill(bufferLeft.begin(), bufferLeft.end(), .0);
+            std::fill(bufferRight.begin(), bufferRight.end(), .0);
         };
         void Process(real** xVec, real** yVec, size_t vecLen);
         DelaySmooth() {
@@ -71,7 +72,7 @@ class DelaySmooth {
  * neither the delay or interpolation time can be changed. */
 template<typename head, typename real>
 void DelaySmooth<head, real>::Process(real** xVec, real** yVec, size_t vecLen) {
-    for (size_t n = 0; n < vecLen; n++) { // level-0 for-loop
+    for (size_t n = 0; n < vecLen; n++) { // Level-0 for-loop.
         real* xLeft = xVec[0];
         real* xRight = xVec[1];
         real* yLeft = yVec[0];
@@ -144,7 +145,7 @@ void DelaySmooth<head, real>::Process(real** xVec, real** yVec, size_t vecLen) {
             (bufferRight[upperReadPtr] - bufferRight[lowerReadPtr]) +
                 bufferRight[lowerReadPtr];
 
-    } // end of level-0 for-loop
+    } // End of level-0 for-loop.
 }
 
 template<typename head, typename real>
@@ -152,6 +153,6 @@ DelaySmooth<head, real>::DelaySmooth(size_t _delay, size_t _interpolationTime) {
     bufferLeft.resize(bufferLen);
     bufferRight.resize(bufferLen);
     delay = _delay;
-    interpolationTime = _interpolationTime;
+    interpolationTime = std::max<size_t>(1, _interpolationTime);
     interpolationStep = 1.0 / real(interpolationTime);
 }
