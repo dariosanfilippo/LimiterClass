@@ -20,9 +20,12 @@
 
 template<size_t stages, typename real>
 class PeakHoldCascade {
+    
+    static_assert(stages > 0, "The PeakHoldCascade class expects one or more stages.");
+    
     private:
         real SR = 48000.0; // Samplerate as a float variable for later calculations.
-        real holdTime = .0; // Hold time in seconds.
+        real holdTime = .001; // Hold time in seconds.
         const real oneOverStages = 1.0 / real(stages);
 
         /* We approximate the given hold time in seconds by rounding the samples
@@ -37,7 +40,10 @@ class PeakHoldCascade {
     public:
         void SetSR(real _SR);
         void SetHoldTime(real _holdTime);
-        void Reset() { memset(timer, 0, stages); memset(output, 0, stages); };
+        void Reset() {
+            memset(timer, 0, stages);
+            memset(output, 0, stages);
+        };
         void Process(real* xVec, real* yVec, size_t vecLen);
         PeakHoldCascade() { };
         PeakHoldCascade(real _SR, real _holdTime);
@@ -45,13 +51,13 @@ class PeakHoldCascade {
 
 template<size_t stages, typename real>
 void PeakHoldCascade<stages, real>::SetSR(real _SR) {
-    SR = _SR;
+    SR = std::max<real>(1.0, _SR);
     holdTimeSamples = std::rint(holdTime * oneOverStages * SR);
 }
 
 template<size_t stages, typename real>
 void PeakHoldCascade<stages, real>::SetHoldTime(real _holdTime) {
-    holdTime = _holdTime;
+    holdTime = std::max<real>(.0, _holdTime);
     holdTimeSamples = std::rint(holdTime * oneOverStages * SR);
 }
 
@@ -61,7 +67,7 @@ void PeakHoldCascade<stages, real>::SetHoldTime(real _holdTime) {
  * samples of the input signal and stores it in the output vector. */
 template<size_t stages, typename real>
 void PeakHoldCascade<stages, real>::Process(real* xVec, real* yVec, size_t vecLen) {
-    for (size_t n = 0; n < vecLen; n++) { // level-0 for-loop
+    for (size_t n = 0; n < vecLen; n++) { // Level-0 for-loop.
 
         /* Outside of th einner for-loop, we assign the absolute value 
          * of the input vector sample to an auxiliary variable, which 
@@ -109,12 +115,12 @@ void PeakHoldCascade<stages, real>::Process(real* xVec, real* yVec, size_t vecLe
          * vector sample. */
         yVec[n] = output[stages - 1];
 
-    } // end of level-0 for-loop
+    } // End of level-0 for-loop.
 }
 
 template<size_t stages, typename real>
 PeakHoldCascade<stages, real>::PeakHoldCascade(real _SR, real _holdTime) {
-    SR = _SR;
+    SR = std::max<real>(1.0, _SR);
     holdTime = _holdTime;
     holdTimeSamples = std::rint(holdTime * oneOverStages * SR);
 }
