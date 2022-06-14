@@ -5,7 +5,7 @@ Reference:
 
  Sanfilippo, D. (2022). Envelope following via cascaded exponential smoothers 
  for low-distortion peak limiting and maximisation. In Proceedings of the
- International Faust Conference, Saint-Étienne, France.
+ International Faust Conference, Saint-Étienne, France. (https://www.dropbox.com/s/pwujls02aqo4uo0/Sanfilippo-IFC22-EnvelopeFollowing.pdf?dl=0)
 
 The repository contains the header-only classes DelaySmooth.hpp, PeakHoldCascade.hpp, ExpSmootherCascade.hpp, and Limiter.hpp. The first class implements a click-free and Doppler-free delay line, which we use to set the limiter's lookahead delay. The second class implements a peak-holder system as a set of cascaded peak-holders, which allow for secondary peaks to be detected. The third class implements an exponential smoother based on cascaded one-pole filters and the cut-off correction formula proposed by (Zavalishin 2012). The last class is the actual limiter implementation where these classes are combined.
 
